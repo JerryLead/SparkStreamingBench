@@ -8,14 +8,14 @@ import org.apache.spark.streaming.Seconds
 object JoinConfig {
 
   //the number of k-v pairs of type a,b and both.
-  val aNum = 10000; val bNum = 10000; val crossNum = 1000
+  var aNum = 10000; var bNum = 10000; var crossNum = 20
 
   //spark streaming config
-  val sparkStreamingDuration = 1
+  var sparkStreamingDuration = 5
 
-  //spark window config
-  val lengthTimes = 5 //for window's length must be a multiple of the slide duration.
-  val slideTimes = 5 //for window's length must be a multiple of the slide duration.
+  //spark streaming window config
+  var lengthTimes = 5 //for window's length must be a multiple of the slide duration.
+  var slideTimes = 5 //for window's length must be a multiple of the slide duration.
   val windowLength = Seconds(sparkStreamingDuration * lengthTimes)
   val slideInterval = Seconds(sparkStreamingDuration * slideTimes)
 
@@ -34,13 +34,21 @@ object JoinConfig {
   val sparkWindowJoinTypeBFilePath = sparkWindowJoinFilePath + "b/"
   val sparkWindowJoinResultFilePath = sparkWindowJoinFilePath + "ab/"
 
+  val finalJoinResultPath = "E://Programming/Paper/data/result.txt"
+
   //kafka config
-  val brokers = "133.133.134.13:9092"
-  val zkQuorum = "133.133.134.13:2181"
+  //caizheng computer
+//  val brokers = "133.133.134.13:9092"
+//  val zkQuorum = "133.133.134.13:2181"
+  //yingying computer
 //  val brokers = "133.133.134.175:9092"
 //  val zkQuorum = "133.133.134.175:40003"
-  val topics = "join-test-a-2,join-test-b-2"
-  val group = "duansky-2"
+  //my own computer
+  val brokers = "133.133.61.117:9092"
+  val zkQuorum = "133.133.61.117:2182"
+
+  val topics = "a,b"
+  val group = "duansky-5"
   val threadNumber = 1
 
 }

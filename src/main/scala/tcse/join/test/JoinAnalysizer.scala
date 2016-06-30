@@ -1,6 +1,6 @@
 package tcse.join.test
 
-import java.io.File
+import java.io.{File, FileWriter, PrintWriter}
 
 import org.apache.spark.{SparkConf, SparkContext}
 import spark.streaming.examples.StreamingExamples
@@ -10,12 +10,10 @@ import spark.streaming.examples.StreamingExamples
   */
 object JoinAnalysizer {
 
-  val sparkConf = new SparkConf().setMaster("local[4]").setAppName("JoinAnalysizer")
-  val sparkCont = new SparkContext(sparkConf)
+
 
   def main(args:Array[String]): Unit ={
     StreamingExamples.setStreamingLogLevels()
-
     analysis
   }
 
@@ -23,6 +21,9 @@ object JoinAnalysizer {
 
   //analysis spark join and spark streaming join
   def analysis(): Unit ={
+
+    val sparkConf = new SparkConf().setMaster("local[4]").setAppName("JoinAnalysizer")
+    val sparkCont = new SparkContext(sparkConf)
 
     //spark join result
     val sj = sparkCont.textFile(JoinConfig.sparkJoinFilePath + File.separator + "part-*")
@@ -44,8 +45,17 @@ object JoinAnalysizer {
     printf("spark join | spark streaming join | spark streaming window based join\n" +
       "%d|(%d,%d)=>%d|(%d,%d)=>%d\n",sj.count(),ssjA.count(),ssjB.count(),ssj.count(),sswjA.count(),sswjB.count(),sswj.count())
 
+    val writer = new PrintWriter(new FileWriter(JoinConfig.finalJoinResultPath,true))
+    writer.println(JoinConfig.aNum + "," + JoinConfig.bNum + "," + JoinConfig.crossNum + ","
+      + JoinConfig.sparkStreamingDuration + "," + JoinConfig.lengthTimes + "," + JoinConfig.slideTimes)
+    writer.println("spark join | spark streaming join | spark streaming window based join\n" +
+      "%d|(%d,%d)=>%d|(%d,%d)=>%d\n".format(sj.count(),ssjA.count(),ssjB.count(),ssj.count(),sswjA.count(),sswjB.count(),sswj.count()))
+    writer.flush()
+    writer.close()
     //delete the old files.
     JoinUtil.deleteDir(JoinConfig.sparkStreamingJoinFilePath)
     JoinUtil.deleteDir(JoinConfig.sparkWindowJoinFilePath)
+
+    sparkCont.stop()
   }
 }

@@ -8,8 +8,8 @@ import spark.streaming.examples.StreamingExamples
   */
 object SparkJoin {
 
-  def main(args:Array[String]): Unit ={
 
+  def join(): Unit ={
     StreamingExamples.setStreamingLogLevels()
 
     val sparkConf = new SparkConf().setMaster("local[2]").setAppName("SparkJoin")
@@ -33,6 +33,11 @@ object SparkJoin {
     joinRes.saveAsTextFile(JoinConfig.sparkJoinFilePath)
     printf("spark join done. We have read %d type a and %d type b, %d cross.\n",aMap.count(),bMap.count(),joinRes.count())
 
+    sparkCont.stop()
+  }
+
+  def main(args:Array[String]): Unit ={
+    join()
   }
 
   def getTuple(pairs:String) :(String,String) = {

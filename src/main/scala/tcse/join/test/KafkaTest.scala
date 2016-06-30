@@ -3,7 +3,7 @@ package tcse.join.test
 import java.io.File
 import java.util.Properties
 
-import kafka.consumer.{ConsumerConfig, ConsumerIterator}
+import kafka.consumer.ConsumerConfig
 import kafka.serializer.StringDecoder
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}
@@ -18,8 +18,8 @@ object KafkaTest {
   def main(args:Array[String]): Unit ={
     StreamingExamples.setStreamingLogLevels()
 //    consumer
-    consumer0
-//    tracker
+//    consumer0
+    tracker
   }
 
 
@@ -27,22 +27,24 @@ object KafkaTest {
     val props:Properties = new Properties()
     props.put("zookeeper.connect",JoinConfig.zkQuorum)
     props.put("group.id",JoinConfig.group)
-    props.put("zookeeper.session.timeout.ms","3000")
+    props.put("zookeeper.session.timeout.ms","6000")
     val kafkaConf = new ConsumerConfig(props)
     val topicMap = JoinConfig.topics.split(",").map(x => (x,1)).toMap
     val consumer = kafka.consumer.Consumer.create(kafkaConf)
-    val streamMap = consumer.createMessageStreams(topicMap)
+    val streamMap = consumer.createMessageStreams[String,String](topicMap, new StringDecoder(),
+      new StringDecoder())
 
     var count = 0
 
     topicMap.foreach( x =>{
-      val stream = streamMap.get(x._1).get(0)
-      val iter: ConsumerIterator[Array[Byte], Array[Byte]] = stream.iterator()
-      while(iter.hasNext()){
-        count+=1
-        println(count+":"+iter.next().message())
-      }
-
+      streamMap.get(x._1).foreach(f = list => list.foreach { stream =>
+        val iter = stream.iterator()
+        while (iter.hasNext()) {
+          count += 1
+          val message = iter.next()
+          println(count + "#" + message.topic + message.key() + message.message())
+        }
+      })
     })
   }
 
@@ -57,6 +59,7 @@ object KafkaTest {
       ssc, kafkaParams, topicsSet)
 
     messages.print()
+    JoinUtil.deleteDir("E://Programming/Paper/data/kafka-test/")
     messages.saveAsTextFiles("E://Programming/Paper/data/kafka-test/")
 
     ssc.start()
